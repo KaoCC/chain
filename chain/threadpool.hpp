@@ -18,7 +18,7 @@ class threadpool final {
   /// @return The future object of the result of the callable.
   template <class Callable, class... Args>
   [[nodiscard]] auto enqueue(Callable &&callable, Args &&...args)
-      -> std::future<typename std::invoke_result<Callable, Args...>::type>;
+      -> std::future<std::invoke_result_t<Callable, Args...>>;
 
   ~threadpool();
 

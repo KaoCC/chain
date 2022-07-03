@@ -11,8 +11,13 @@ class timer final {
  public:
   using duration = std::chrono::duration<Rep>;
 
+  /// Call the callable and measure the elapsed time.
+  /// @param[in] token The token of the time record.
+  /// @param[in] callable The callable object to be called.
+  /// @param[in] args The parameters of the callable.
+  /// @return The returned result of the callable.
   template <typename Callable, typename... Args>
-  duration measure(const Token token, Callable&& callable, Args&&... args) noexcept;
+  decltype(auto) measure(const Token token, Callable&& callable, Args&&... args) noexcept;
 
   /// Get the measured time record of the speficied token.
   /// @param[in] token The token of the time record.
@@ -32,15 +37,14 @@ class timer final {
 
 template <typename Token, typename Rep>
 template <typename Callable, typename... Args>
-typename timer<Token, Rep>::duration timer<Token, Rep>::measure(const Token token, Callable&& callable,
-                                                                Args&&... args) noexcept {
+decltype(auto) timer<Token, Rep>::measure(const Token token, Callable&& callable, Args&&... args) noexcept {
   const auto start{std::chrono::steady_clock::now()};
-  std::invoke(std::forward<Callable>(callable), std::forward<Args>(args)...);
+  decltype(auto) result{std::invoke(std::forward<Callable>(callable), std::forward<Args>(args)...)};
   const auto stop{std::chrono::steady_clock::now()};
 
   time_record[token] += (stop - start);
 
-  return time_record[token];
+  return result;
 }
 
 template <typename Token, typename Rep>
