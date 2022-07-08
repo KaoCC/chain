@@ -39,12 +39,25 @@ template <typename Token, typename Rep>
 template <typename Callable, typename... Args>
 decltype(auto) timer<Token, Rep>::measure(const Token token, Callable&& callable, Args&&... args) noexcept {
   const auto start{std::chrono::steady_clock::now()};
-  decltype(auto) result{std::invoke(std::forward<Callable>(callable), std::forward<Args>(args)...)};
-  const auto stop{std::chrono::steady_clock::now()};
 
-  time_record[token] += (stop - start);
+  using return_type = std::invoke_result_t<Callable, Args...>;
 
-  return result;
+  if constexpr (std::is_void_v<return_type>) {
+    std::invoke(std::forward<Callable>(callable), std::forward<Args>(args)...);
+
+    const auto stop{std::chrono::steady_clock::now()};
+    time_record[token] += (stop - start);
+
+    return;
+
+  } else {
+    decltype(auto) result{std::invoke(std::forward<Callable>(callable), std::forward<Args>(args)...)};
+
+    const auto stop{std::chrono::steady_clock::now()};
+    time_record[token] += (stop - start);
+
+    return result;
+  }
 }
 
 template <typename Token, typename Rep>
